@@ -1,0 +1,20 @@
+.sliders input[type='range'] {
+    margin-bottom: 1.25rem;
+}
+.sliders input[type='number'] {
+    float: right;
+}
+.sliders label {
+    margin-bottom: .5rem;
+}
+.sliders .btn-sm {
+    float: right;
+    margin-left: .25rem;
+    margin-right: .25rem;
+}
+.nav-link {
+    font-size: large;
+}
+.nav-link.active { 
+    font-weight: 500;
+}

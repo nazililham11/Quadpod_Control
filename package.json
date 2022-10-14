@@ -1,0 +1,16 @@
+{
+  "name": "quadpod-electron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^17.0.0"
+  },
+  "dependencies": {
+    "serialport": "^10.3.0"  
+  }
+}

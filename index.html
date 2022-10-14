@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quadpod</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="container-fluid p-0" id="app">
+        <nav class="navbar navbar-expand navbar-dark bg-dark px-3">
+            <!-- <a class="navbar-brand" href="#">Navbar</a> -->
+            
+            <div class="navbar-nav me-auto">
+                <a class="nav-item nav-link" 
+                    :class="{'active': active_tab === 0}" 
+                    @click="active_tab = 0" href="#">Koneksi</a>
+                <a class="nav-item nav-link" 
+                    :class="{'active': active_tab === 1, 'disabled': !isOpen}" 
+                    @click="active_tab = 1" href="#">Servo Angle</a>
+                <a class="nav-item nav-link" 
+                    :class="{'active': active_tab === 2, 'disabled': !isOpen}" 
+                    @click="active_tab = 2" href="#">Leg Pos</a>
+                <a class="nav-item nav-link" 
+                    :class="{'active': active_tab === 3, 'disabled': !isOpen}" 
+                    @click="active_tab = 3" href="#">Gaits (BETA)</a>
+            </div>
+          
+            <span class="navbar-text me-2" v-show="isOpen">
+                {{selected_serial.friendlyName}}</span>
+            <button class="btn btn-danger" v-show="isOpen" 
+                @click="closeSerial" >Close Serial</button>
+        
+        </nav>
+
+        <!-- Koneksi -->
+        <div class="row p-2" v-show="active_tab === 0">
+            <div class="col-12">
+                <h2>Koneksi</h2>
+                <hr>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <!-- <div class="card-header">Koneksi</div> -->
+                    <div class="card-body">
+
+                        <div id="error"></div>
+                        <div id="ports"></div>
+
+                        <table class="table">
+                            <tbody>
+                                <tr v-for="(serial, index) in serials" :key="index">
+                                    <td>{{serial.path}}</td>
+                                    <td>{{serial.friendlyName}}</td>
+                                    <td>{{serial.manufacturer}}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" 
+                                            @click="openSerial(serial)" 
+                                            :class="{'disabled':isOpen}">
+                                            Open</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <span v-show="isOpen">{{selected_serial.friendlyName}}</span>
+                        <button class="btn btn-danger" @click="closeSerial" 
+                            :class="{'disabled':!isOpen}">Close Seral</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Leg Angle Sliders (Coxa, Femur, Tibia) -->
+        <div class="row p-2 sliders" v-show="active_tab === 1">
+            <div class="col-12">
+                <h2>Servo Angle (Coxa, Femur, Tibia)</h2>
+                <hr>
+            </div>
+            <div class="col-6 p-2" v-for="(menu, index) in servo_menus" :key="index">
+                <div class="card">
+                    <div class="card-header">
+                        {{menu.title}}
+                        <button class="btn btn-sm btn-warning" :class="{'disabled':!isOpen}" 
+                            @click="setServoDefault(menu.leg)">Default</button>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <!-- Coxa-->
+                        <label> Coxa <input type="number" v-model="servo[menu.leg]['0']"/></label>
+                        <input type="range" min="0" max="180" v-model="servo[menu.leg]['0']" 
+                            @change="servoWrite(menu.leg, 0)">
+
+                        <!-- Femur-->
+                        <label> Femur <input type="number" v-model="servo[menu.leg]['1']"/></label>
+                        <input type="range" min="0" max="180" v-model="servo[menu.leg]['1']" 
+                            @change="servoWrite(menu.leg, 1)">
+
+                        <!-- Tibia-->
+                        <label> Tibia <input type="number" v-model="servo[menu.leg]['2']"/></label>
+                        <input type="range" min="0" max="180" v-model="servo[menu.leg]['2']" 
+                            @change="servoWrite(menu.leg, 2)">
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Leg Pos (X,Y,Z) -->
+        <div class="row p-2 sliders" v-show="active_tab === 2">
+            <div class="col-12">
+                <h2>Leg POS (X, Y, Z)</h2>
+                <hr>
+            </div>
+            <div class="col-6 p-2" v-for="(menu, index) in leg_site_menus" :key="index">
+                <div class="card">
+                    <div class="card-header">
+                        {{menu.title}}
+                        <button class="btn btn-sm btn-warning" :class="{'disabled':!isOpen}" 
+                            @click="setSiteDefault(menu.leg)">Default</button>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <!-- X-->
+                        <label>X <input type="number" v-model="leg[menu.leg].x"/></label>
+                        <input type="range" min="-100" max="100" 
+                            v-model="leg[menu.leg].x" @change="setSite(menu.leg)">
+
+                        <!-- Y-->
+                        <label>Y <input type="number" v-model="leg[menu.leg].y"/></label>
+                        <input type="range" min="-100" max="100" 
+                            v-model="leg[menu.leg].y" @change="setSite(menu.leg)">
+
+                        <!-- Z-->
+                        <label>Z <input type="number" v-model="leg[menu.leg].z"/></label>
+                        <input type="range" min="-100" max="100" 
+                            v-model="leg[menu.leg].z" @change="setSite(menu.leg)">
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Gaits (BETA) -->
+        <div class="row p-2" v-show="active_tab === 3"> 
+            <div class="col-12">
+                <h2>Gaits (BETA)</h2>
+                <hr>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Gaits (BETA)</div>
+                    <div class="card-body d-flex flex-column">
+                        <button class="btn btn-primary px-4 my-2" @click="sit">Sit</button>
+                        <button class="btn btn-primary px-4 my-2" @click="stand">Stand</button>
+
+                        <div class="d-flex flex-row align-items-center">
+                            <label class="flex-fill">Step ({{forward_steps}}) 
+                                <input class="w-100" type="range" min="1" max="10" 
+                                    v-model="forward_steps">
+                            </label>
+
+                            <button class="btn btn-primary px-4 ms-3" 
+                                @click="forward(forward_steps)">Step Forward</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+</body>
+
+<script src="./vue.js"></script>
+<script src="./renderer.js"></script>
+
+</html>
