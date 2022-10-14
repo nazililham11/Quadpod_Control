@@ -36,15 +36,3 @@ npm start
 - Belum bisa mengkonversi input sudut menjadi koordinat (Kinematic Algorithm)
 
 
-
-
-
-<style>
-    img { 
-        width: 50%; 
-        display:block;
-        float:none;
-        margin-left:auto;
-        margin-right:auto;
-    }
-</style>
